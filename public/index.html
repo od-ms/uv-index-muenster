@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>UV-Index Münster</title>
+    <style type="text/css">
+        * {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-optical-sizing: auto;
+            font-style: normal;
+            font-weight: 400;
+        }
+        #content {
+            max-width:500px;
+            max-height:500px;
+            padding:20px;
+            margin:20% auto 0 auto;
+        }
+        #uvindex_div {
+            border-radius: 10px;
+            padding: 50px 20px;
+            border:1px solid #555;
+            box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, rgba(0, 0, 0, 0.07) 0px 2px 4px, rgba(0, 0, 0, 0.07) 0px 4px 8px, rgba(0, 0, 0, 0.07) 0px 8px 16px, rgba(0, 0, 0, 0.07) 0px 16px 32px, rgba(0, 0, 0, 0.07) 0px 32px 64px;        }
+        * {
+            text-align:center;
+        }
+        #legende {
+            margin: 0 auto 30px auto;
+            opacity:0.7;
+        }
+        #legende td {
+            padding: 0 6px;
+        }
+        #links {
+            color:#999;
+        }
+        #timestamp {
+            color:#bbb;
+        }
+        #links a {
+            color:#000;
+        }
+    </style>
+<link href="data:image/x-icon;base64,AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAApjkAAEsAkQCqmuUAi1oAACIymAC3u1sAAK/uAHbU+wDEiQAAZSILAHBlFQDLxekAi50eAHFD7AAyJHcA6ePKAACD6QBfUCIARiBmAMy1cgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQUFAAQEBAACAgIAAwMDAAUFBQAEBAQAAgICAAMDAwAAAAAAAAAAAAAAAAAAAAAAAkJCQAGBgYABwcHAAMDAwAJCQkABgYGAAcHBwADAwMAAAAAAAAAAAAAAAAAAAAAAAQEBAANDQ0AERERAA4ODgAEBAQADQ0NABEREQAODg4AAAAAAAAAAAAAAAAAAAAAAAEBAQALCwsABQUFAAICAgABAQEACwsLAAUFBQACAgIAAAAAAAAAAAAAAAAAAAAAAAoKCgASEhIADw8PABMTEwAKCgoAEhISAA8PDwATExMAAAAAAAAAAAAAAAAAAAAAAP//AAAREQAAEREAAP//AAAREQAAEREAAP//AAAREQAAEREAAP//AAAREQAAEREAAP//AAAREQAAEREAAP//AAA=" rel="icon" type="image/x-icon">
+</head>
+<body>
+    <div id="content">
+        <h1>UV-Index Münster</h1>
+        <h3>
+            Datum: <span id="uvdate"></span>
+        </h3>
+        <div id="uvindex_div">
+            <h2 id="uvindex"></h2>
+        </div>
+
+        <h3>Legende</h3>
+        <table id="legende">
+            <thead>
+                <tr>
+                  <th>Wert</th>
+                  <th>Risiko</th>
+                </tr>
+            </thead>
+            <tbody id="uvtable"></tbody>
+        </table>
+        <div id="links">Links:
+            <a href="data/uv-index-muenster.csv">[CSV Download]</a>
+            <a href="data/uv-index-muenster.json">[GeoJson]</a>
+            <a href="https://opendata.stadt-muenster.de">[Open Data]</a>
+        </div>
+        <div id="timestamp"></div>
+    </div>
+    <script>
+        function fetchJSONData() {
+            fetch("./data/uv-index-muenster.json?v=" + Math.random())
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error
+                            (`HTTP error! Status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    console.log(data)
+                    const props = data['features'][0]['properties']
+                    const div_element = document.getElementById("uvindex_div");
+                    div_element.style.backgroundColor = props['color_level']
+                    const text_element = document.getElementById("uvindex")
+                    text_element.innerHTML = props['uv-index'] + " (" + props['risk_level_de'] + ")"
+                    const date_element = document.getElementById("uvdate")
+                    date_element.innerHTML = props['date'].substring(0,10)
+                    document.getElementById("timestamp").innerHTML="Erstellungsdatum: " + props['timestamp']
+                })
+                .catch((error) =>
+                    console.error("Unable to fetch data:", error));
+        }
+        fetchJSONData();
+
+        const COLOR_RISKS_LEVELS = {
+            "0-2": ['#97D700', 'Low', 'Niedrig'],
+            "3-5": ['#FCE300', 'Moderate', 'Mittel'],
+            "6-7": ['#FF8200', 'High', 'Hoch'],
+            "8-10": ['#EF3340', 'Very High', 'Sehr Hoch'],
+            ">10": ['#9063CD', 'Extreme', 'Extrem']
+        }
+        const tbodyRef = document.getElementById("uvtable")
+        for (const [key, value] of Object.entries(COLOR_RISKS_LEVELS)) {
+            console.log(`${key}: ${value}`);
+
+            var newRow = tbodyRef.insertRow();
+            newRow.style.backgroundColor = value[0]
+            var newCell = newRow.insertCell();
+            var newText = document.createTextNode(key);
+            newCell.appendChild(newText);
+
+            var newCell2 = newRow.insertCell();
+            var newText2 = document.createTextNode(value[2]);
+            newCell2.appendChild(newText2);
+        }
+    </script>
+</body>
+</html>
