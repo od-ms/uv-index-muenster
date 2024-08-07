@@ -92,7 +92,7 @@ def read_url_with_cache(cachefile_name, url):
     filename = f'{cachefile_name}.json'
 
     current_ts = time.time()
-    cache_max_age = 60 * 60 * 11 # hours
+    cache_max_age = 60 * 60 * 3 # hours
     generate_cache_file = True
     filecontent = "{}"
     if os.path.isfile(filename):
